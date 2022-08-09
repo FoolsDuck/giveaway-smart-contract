@@ -1,4 +1,4 @@
-# giveaway
+# Giveaway
 Solidity smart contract for managing giveaways with Guilds 
 
 How it works:
