@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: MIT
-
+import "./Guilds.sol";
+import "./ReentrancyGuard.sol";
+import "./VRFConsumerBase.sol";
+import "./LinkTokenInterface.sol";
+import "./IERC165.sol";
+import "./IERC721.sol";
 
 pragma solidity ^0.8.4;
 
@@ -27,20 +32,23 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
     constructor(string memory name_, string memory symbol_)
         VRFConsumerBase(
             0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B, // VRF Coordinator
-            0x01BE23585060835E02B77ef475b0Cc51aA1e0709  // LINK Token
+            0x01BE23585060835E02B77ef475b0Cc51aA1e0709 // LINK Token
         )
     {
-         _name = name_;
+        _name = name_;
         _symbol = symbol_;
-        guilds = Guilds(GuildsAddress); 
+        guilds = Guilds(GuildsAddress);
         keyHash = 0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311;
-        fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
+        fee = 0.1 * 10**18; // 0.1 LINK (Varies by network)
     }
 
-  Guilds.Guild guild;
+    Guilds.Guild guild;
 
     function getRandomNumber() public returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+        require(
+            LINK.balanceOf(address(this)) >= fee,
+            "Not enough LINK - fill contract with faucet"
+        );
         return requestRandomness(keyHash, fee);
     }
 
@@ -54,13 +62,27 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
 
     function symbol() public view virtual returns (string memory) {
         return _symbol;
-    } 
+    }
 
-    function stake(uint256 _tokenId, IERC721 nftCollection, uint256 _guildId, uint256 _spots) external nonReentrant {
+    function stake(
+        uint256 _tokenId,
+        IERC721 nftCollection,
+        uint256 _guildId,
+        uint256 _spots
+    ) external nonReentrant {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
-        require(!raffleExists[_guildId], "Each guild can have only one giveaway at a time");
-        require(_guild.Admin == msg.sender, "Only guild master can start a giveaway");
-        require(guilds.totalSupply(_guildId) >= _spots, "Not enough spots to giveaway");
+        require(
+            !raffleExists[_guildId],
+            "Each guild can have only one giveaway at a time"
+        );
+        require(
+            _guild.Admin == msg.sender,
+            "Only guild master can start a giveaway"
+        );
+        require(
+            guilds.totalSupply(_guildId) >= _spots,
+            "Not enough spots to giveaway"
+        );
         require(
             nftCollection.ownerOf(_tokenId) == msg.sender,
             "You don't own this token!"
@@ -81,23 +103,39 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         require(raffleExists[_guildId], "Raffle is not existed");
         require(msg.sender == _guild.Admin, "Only guild master can raffle");
         countEntries(_guildId);
-        require(raffle[_guildId].Participates.length >= raffle[_guildId].TotalEntries, "Giveaway is not finished");
-        require(randomResult > 0, "No random number to give, wait for oracle to finish randomness");
-        uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) + 1;
+        require(
+            raffle[_guildId].Participates.length >=
+                raffle[_guildId].TotalEntries,
+            "Giveaway is not finished"
+        );
+        require(
+            randomResult > 0,
+            "No random number to give, wait for oracle to finish randomness"
+        );
+        uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) +
+            1;
         address winner = raffle[_guildId].Participates[winnerIndex];
-        raffle[_guildId].StakedCollection.transferFrom(address(this), winner, raffle[_guildId].StakedTokenId);
+        raffle[_guildId].StakedCollection.transferFrom(
+            address(this),
+            winner,
+            raffle[_guildId].StakedTokenId
+        );
         delete raffle[_guildId];
     }
 
-    function totalEntriesOfRaffle(uint256 _guildId) public view returns(uint256) {
+    function totalEntriesOfRaffle(uint256 _guildId)
+        public
+        view
+        returns (uint256)
+    {
         return raffle[_guildId].TotalEntries;
     }
 
-    function rewardToken(uint256 _guildId) public view returns(uint256) {
+    function rewardToken(uint256 _guildId) public view returns (uint256) {
         return raffle[_guildId].StakedTokenId;
     }
 
-    function rewardCollection(uint256 _guildId) public view returns(IERC721) {
+    function rewardCollection(uint256 _guildId) public view returns (IERC721) {
         return raffle[_guildId].StakedCollection;
     }
 
@@ -106,24 +144,29 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         // push mods:
         for (uint256 i; i < _guild.GuildMods.length; i++) {
             if (_guild.GuildMods[i] != address(0)) {
-            uint256 _entriesForAddress = guilds.balanceOf(_guild.GuildMods[i], _guildId);
-            for (uint256 e; e < _entriesForAddress; e++) {
-            raffle[_guildId].Participates.push(_guild.GuildMods[i]);
-            }
+                uint256 _entriesForAddress = guilds.balanceOf(
+                    _guild.GuildMods[i],
+                    _guildId
+                );
+                for (uint256 e; e < _entriesForAddress; e++) {
+                    raffle[_guildId].Participates.push(_guild.GuildMods[i]);
+                }
             }
         }
 
         // push members:
         for (uint256 i; i < _guild.GuildMembers.length; i++) {
             if (_guild.GuildMembers[i] != address(0)) {
-            uint256 _entriesForAddress = guilds.balanceOf(_guild.GuildMembers[i], _guildId);
-            for (uint256 e; e < _entriesForAddress; e++) {
-            raffle[_guildId].Participates.push(_guild.GuildMembers[i]);
-            }
+                uint256 _entriesForAddress = guilds.balanceOf(
+                    _guild.GuildMembers[i],
+                    _guildId
+                );
+                for (uint256 e; e < _entriesForAddress; e++) {
+                    raffle[_guildId].Participates.push(_guild.GuildMembers[i]);
+                }
             }
         }
     }
-
 
     function indexOfAddress(address[] memory arr, address searchFor)
         private
