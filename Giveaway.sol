@@ -140,7 +140,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         returns (address[] memory)
     {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
-        address[] memory participants = new address[](raffle[_guildId].TotalEntries);
+        address[] memory participants;
         // push mods:
         for (uint256 i; i < _guild.GuildMods.length; i++) {
             if (_guild.GuildMods[i] != address(0)) {
