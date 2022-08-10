@@ -25,7 +25,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
     string private _symbol;
     bytes32 internal keyHash;
     uint256 internal fee;
-    uint256 public randomResult;
+    uint256 private randomResult;
 
     constructor(string memory name_, string memory symbol_)
         VRFConsumerBase(
