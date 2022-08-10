@@ -16,7 +16,6 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         address Staker;
         IERC721 StakedCollection;
         uint256 StakedTokenId;
-        address[] Participants;
     }
 
     mapping(uint256 => Raffle) raffle;
@@ -26,7 +25,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
     string private _symbol;
     bytes32 internal keyHash;
     uint256 internal fee;
-    uint256 private randomResult;
+    uint256 public randomResult;
 
     constructor(string memory name_, string memory symbol_)
         VRFConsumerBase(
@@ -93,7 +92,6 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         raffle[_guildId].Staker = msg.sender;
         raffle[_guildId].StakedCollection = nftCollection;
         raffle[_guildId].StakedTokenId = _tokenId;
-        raffle[_guildId].Participants;
         raffleExists[_guildId] = true;
     }
 
@@ -101,18 +99,18 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
         require(raffleExists[_guildId], "Raffle is not existed");
         require(msg.sender == _guild.Admin, "Only guild master can raffle");
-        countEntries(_guildId);
+        address[] memory totalEntries = countEntries(_guildId);
         require(
-            raffle[_guildId].Participants.length >=
-                raffle[_guildId].TotalEntries,
+            totalEntries.length >= raffle[_guildId].TotalEntries,
             "Giveaway is not finished"
         );
         require(
             randomResult > 0,
             "No random number to give, wait for oracle to finish randomness"
         );
-        uint256 winnerIndex = randomResult % raffle[_guildId].TotalEntries;
-        address winner = raffle[_guildId].Participants[winnerIndex];
+        uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) +
+            1;
+        address winner = totalEntries[winnerIndex];
         raffle[_guildId].StakedCollection.transferFrom(
             address(this),
             winner,
@@ -137,8 +135,13 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         return raffle[_guildId].StakedCollection;
     }
 
-    function countEntries(uint256 _guildId) private {
+    function countEntries(uint256 _guildId)
+        private
+        view
+        returns (address[] memory)
+    {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
+        address[] memory participants;
         // push mods:
         for (uint256 i; i < _guild.GuildMods.length; i++) {
             if (_guild.GuildMods[i] != address(0)) {
@@ -147,23 +150,28 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                     _guildId
                 );
                 for (uint256 e; e < _entriesForAddress; e++) {
-                    raffle[_guildId].Participants.push(_guild.GuildMods[i]);
+                    participants[participants.length] = _guild.GuildMods[i];
                 }
             }
         }
 
         // push members:
-        for (uint256 i; i < _guild.GuildMembers.length; i++) {
+        for (
+            uint256 i = _guild.GuildMods.length;
+            i < _guild.GuildMembers.length;
+            i++
+        ) {
             if (_guild.GuildMembers[i] != address(0)) {
                 uint256 _entriesForAddress = guilds.balanceOf(
                     _guild.GuildMembers[i],
                     _guildId
                 );
                 for (uint256 e; e < _entriesForAddress; e++) {
-                    raffle[_guildId].Participants.push(_guild.GuildMembers[i]);
+                    participants[participants.length] = _guild.GuildMembers[i];
                 }
             }
         }
+        return participants;
     }
 
     function indexOfAddress(address[] memory arr, address searchFor)
