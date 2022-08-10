@@ -3,7 +3,6 @@ import "./Guilds.sol";
 import "./ReentrancyGuard.sol";
 import "./VRFConsumerBase.sol";
 import "./LinkTokenInterface.sol";
-import "./IERC165.sol";
 import "./IERC721.sol";
 
 pragma solidity ^0.8.4;
