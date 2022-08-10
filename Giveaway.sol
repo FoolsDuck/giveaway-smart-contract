@@ -156,11 +156,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         }
 
         // push members:
-        for (
-            uint256 i = _guild.GuildMods.length;
-            i < _guild.GuildMembers.length;
-            i++
-        ) {
+        for (uint256 i = 0; i < _guild.GuildMembers.length; i++) {
             if (_guild.GuildMembers[i] != address(0)) {
                 uint256 _entriesForAddress = guilds.balanceOf(
                     _guild.GuildMembers[i],
