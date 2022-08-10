@@ -117,6 +117,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
             raffle[_guildId].StakedTokenId
         );
         delete raffle[_guildId];
+        randomResult = 0;
     }
 
     function totalEntriesOfRaffle(uint256 _guildId)
