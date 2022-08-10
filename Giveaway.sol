@@ -17,7 +17,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         address Staker;
         IERC721 StakedCollection;
         uint256 StakedTokenId;
-        address[] Participates;
+        address[] Participants;
     }
 
     mapping(uint256 => Raffle) raffle;
@@ -94,7 +94,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         raffle[_guildId].Staker = msg.sender;
         raffle[_guildId].StakedCollection = nftCollection;
         raffle[_guildId].StakedTokenId = _tokenId;
-        raffle[_guildId].Participates;
+        raffle[_guildId].Participants;
         raffleExists[_guildId] = true;
     }
 
@@ -104,7 +104,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         require(msg.sender == _guild.Admin, "Only guild master can raffle");
         countEntries(_guildId);
         require(
-            raffle[_guildId].Participates.length >=
+            raffle[_guildId].Participants.length >=
                 raffle[_guildId].TotalEntries,
             "Giveaway is not finished"
         );
@@ -114,7 +114,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         );
         uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) +
             1;
-        address winner = raffle[_guildId].Participates[winnerIndex];
+        address winner = raffle[_guildId].Participants[winnerIndex];
         raffle[_guildId].StakedCollection.transferFrom(
             address(this),
             winner,
@@ -149,7 +149,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                     _guildId
                 );
                 for (uint256 e; e < _entriesForAddress; e++) {
-                    raffle[_guildId].Participates.push(_guild.GuildMods[i]);
+                    raffle[_guildId].Participants.push(_guild.GuildMods[i]);
                 }
             }
         }
@@ -162,7 +162,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                     _guildId
                 );
                 for (uint256 e; e < _entriesForAddress; e++) {
-                    raffle[_guildId].Participates.push(_guild.GuildMembers[i]);
+                    raffle[_guildId].Participants.push(_guild.GuildMembers[i]);
                 }
             }
         }
