@@ -107,8 +107,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
             randomResult > 0,
             "No random number to give, get random number and wait for oracle to finish randomness"
         );
-        uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) +
-            1;
+        uint256 winnerIndex = randomResult % raffle[_guildId].TotalEntries;
         address winner = totalEntries[winnerIndex];
         raffle[_guildId].StakedCollection.transferFrom(
             address(this),
