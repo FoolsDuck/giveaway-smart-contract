@@ -98,7 +98,6 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
     function reward(uint256 _guildId) external nonReentrant {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
         require(raffleExists[_guildId], "Raffle is not existed");
-        require(msg.sender == _guild.Admin, "Only guild master can raffle");
         address[] memory totalEntries = countEntries(_guildId);
         require(
             totalEntries.length >= raffle[_guildId].TotalEntries,
@@ -106,7 +105,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         );
         require(
             randomResult > 0,
-            "No random number to give, wait for oracle to finish randomness"
+            "No random number to give, get random number and wait for oracle to finish randomness"
         );
         uint256 winnerIndex = (randomResult % raffle[_guildId].TotalEntries) +
             1;
