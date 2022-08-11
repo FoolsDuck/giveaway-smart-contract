@@ -175,7 +175,10 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                 lastIndexFilled += _entriesForAddress;               
         }
         }
-
+        
+        if (lastIndexFilled < maxSpots) {
+            revert("Must fill all spots before raffle");
+        }
         return participants;
     }
 
