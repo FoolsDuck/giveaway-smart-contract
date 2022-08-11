@@ -135,37 +135,47 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
     }
 
     function countEntries(uint256 _guildId)
-        private
+        public
         view
         returns (address[] memory)
     {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
-        address[] memory participants;
-        // push mods:
-        for (uint256 i; i < _guild.GuildMods.length; i++) {
-            if (_guild.GuildMods[i] != address(0)) {
-                uint256 _entriesForAddress = guilds.balanceOf(
-                    _guild.GuildMods[i],
-                    _guildId
-                );
-                for (uint256 e; e < _entriesForAddress; e++) {
-                    participants[participants.length] = _guild.GuildMods[i];
-                }
-            }
-        }
+        uint maxSpots = raffle[_guildId].TotalEntries;
+        address[] memory participants = new address[](maxSpots);
+        uint256 lastIndexFilled;
 
-        // push members:
-        for (uint256 i = 0; i < _guild.GuildMembers.length; i++) {
-            if (_guild.GuildMembers[i] != address(0)) {
-                uint256 _entriesForAddress = guilds.balanceOf(
+        if (_guild.GuildMembers.length > 0) {
+        for (uint i; i < _guild.GuildMembers.length; i++) {
+                 uint256 _entriesForAddress = guilds.balanceOf(
                     _guild.GuildMembers[i],
                     _guildId
                 );
-                for (uint256 e; e < _entriesForAddress; e++) {
-                    participants[participants.length] = _guild.GuildMembers[i];
-                }
-            }
+                for (uint256 x; x < _entriesForAddress; x++) {
+                    uint indexToUpdate = x + lastIndexFilled;
+                    if (indexToUpdate < maxSpots) {
+                    participants[indexToUpdate] = _guild.GuildMembers[i];
+                    }
+                } 
+                lastIndexFilled += _entriesForAddress;               
         }
+        }
+
+        if (_guild.GuildMods.length > 0) {
+        for (uint i; i < _guild.GuildMods.length; i++) {
+                 uint256 _entriesForAddress = guilds.balanceOf(
+                    _guild.GuildMods[i],
+                    _guildId
+                );
+                for (uint256 x; x < _entriesForAddress; x++) {
+                    uint indexToUpdate = x + lastIndexFilled;
+                    if (indexToUpdate < maxSpots) {
+                    participants[indexToUpdate] = _guild.GuildMods[i];
+                    }
+                } 
+                lastIndexFilled += _entriesForAddress;               
+        }
+        }
+
         return participants;
     }
 
