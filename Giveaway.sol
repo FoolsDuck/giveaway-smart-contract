@@ -99,10 +99,11 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         Guilds.Guild memory _guild = guilds.getGuildById(_guildId);
         require(raffleExists[_guildId], "Raffle is not existed");
         address[] memory totalEntries = countEntries(_guildId);
-        require(
-            totalEntries.length >= raffle[_guildId].TotalEntries,
-            "Giveaway is not finished"
-        );
+        for (uint i; i < totalEntries.length; i++) {
+            if (totalEntries[i] == address(0)) {
+                revert("Giveaway is not finished");
+            }
+        }
         require(
             randomResult > 0,
             "No random number to give, get random number and wait for oracle to finish randomness"
@@ -181,9 +182,6 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         }
         }
 
-        if (lastIndexFilled < maxSpots) {
-            revert("Must fill all spots before raffle");
-        }
         return participants;
     }
 
