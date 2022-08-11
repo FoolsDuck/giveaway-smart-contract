@@ -20,7 +20,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
 
     mapping(uint256 => Raffle) raffle;
     mapping(uint256 => bool) raffleExists;
-    address GuildsAddress = 0x476ffB49bD1Cf6B53E112F503d56aBAbc6E0823F;
+    address GuildsAddress = 0x9c26d327435148dE06c53A014103A7a3c82c672f;
     string private _name;
     string private _symbol;
     bytes32 internal keyHash;
