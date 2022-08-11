@@ -147,6 +147,7 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
 
         if (_guild.GuildMembers.length > 0) {
         for (uint i; i < _guild.GuildMembers.length; i++) {
+            if (_guild.GuildMembers[i] != address(0)) {
                  uint256 _entriesForAddress = guilds.balanceOf(
                     _guild.GuildMembers[i],
                     _guildId
@@ -157,12 +158,14 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                     participants[indexToUpdate] = _guild.GuildMembers[i];
                     }
                 } 
-                lastIndexFilled += _entriesForAddress;               
+                lastIndexFilled += _entriesForAddress;  
+            }             
         }
         }
 
         if (_guild.GuildMods.length > 0) {
         for (uint i; i < _guild.GuildMods.length; i++) {
+            if (_guild.GuildMods[i] != address(0)) {
                  uint256 _entriesForAddress = guilds.balanceOf(
                     _guild.GuildMods[i],
                     _guildId
@@ -173,10 +176,11 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
                     participants[indexToUpdate] = _guild.GuildMods[i];
                     }
                 } 
-                lastIndexFilled += _entriesForAddress;               
+                lastIndexFilled += _entriesForAddress; 
+            }    
         }
         }
-        
+
         if (lastIndexFilled < maxSpots) {
             revert("Must fill all spots before raffle");
         }
