@@ -158,18 +158,4 @@ contract Giveaway is ReentrancyGuard, VRFConsumerBase {
         return participants;
     }
 
-
-    function indexOfAddress(address[] memory arr, address searchFor)
-        private
-        pure
-        returns (uint256)
-    {
-        for (uint256 i = 0; i < arr.length; i++) {
-            if (arr[i] == searchFor) {
-                return i;
-            }
-        }
-        revert("Address Not Found");
-    }
-
 }
